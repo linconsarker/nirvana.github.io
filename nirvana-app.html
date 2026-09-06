@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nirvana</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+
+<!-- ============================================================ -->
+<!-- SECTION 1: CSS VARIABLES & GLOBAL STYLES                      -->
+<!-- ============================================================ -->
+<style>
+:root{--bg:#fff;--surface:#fff;--surface-muted:#fafafa;--border:#ececec;--border-strong:#e0e0e0;--text:#0a0a0a;--text-muted:#6b6b6b;--text-soft:#9a9a9a;--accent:#0a0a0a;--danger:#ef4056;--danger-bg:#ffe4e8;--success:#10b981;--success-bg:#d8f5e7;--warn-bg:#fff4e6;--warn-border:#ffe0b8;--shadow-sm:0 1px 2px rgba(0,0,0,.04);--shadow-md:0 8px 28px rgba(0,0,0,.08);--shadow-lg:0 20px 60px rgba(0,0,0,.15)}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:#f5f5f5;color:var(--text);-webkit-font-smoothing:antialiased;font-feature-settings:'cv11','ss01'}
+button{font-family:inherit;cursor:pointer;border:none;background:none;padding:0;color:inherit}
+input,textarea,select{font-family:inherit}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#ddd;border-radius:4px}::-webkit-scrollbar-track{background:transparent}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+@keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+@keyframes slideInLeft{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:translateX(0)}}
+#root{min-height:100vh}
+.page-wrap{max-width:1120px;margin:0 auto;padding:36px 32px}
+.topbar-inner{max-width:1120px;margin:0 auto;padding:14px 32px;display:flex;align-items:center;justify-content:space-between}
+.brand-sub{font-size:12px;color:var(--text-muted);margin-top:1px}
+.dashboard-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;gap:16px}
+.vault-row{display:flex;align-items:center;gap:16px;padding:18px 20px}
+.vault-row-right{display:flex;align-items:center;gap:14px;flex-shrink:0}
+.vault-detail-grid{display:grid;grid-template-columns:1fr 340px;gap:20px;max-width:1120px;margin:0 auto;padding:20px 32px 64px}
+.vault-detail-head{max-width:1120px;margin:0 auto;padding:28px 32px 16px}
+.dropdown-consent{position:absolute;top:48px;right:0;width:340px}
+.dropdown-activity{position:absolute;top:48px;right:46px;width:340px}
+.vault-meta-row{display:flex;gap:18px;font-size:12px;color:var(--text-soft);flex-wrap:wrap}
+.vault-title-h1{margin:0;font-size:30px;font-weight:700;letter-spacing:-.02em}
+.dashboard-h1{margin:0;font-size:26px;font-weight:700;letter-spacing:-.02em}
+@media(max-width:760px){
+.page-wrap{padding:20px 16px}.topbar-inner{padding:12px 16px}.brand-sub{display:none}
+.dashboard-header{flex-direction:column;align-items:stretch;gap:14px}.dashboard-h1{font-size:22px}
+.dashboard-create-btn{padding:10px 14px!important;font-size:13px!important;white-space:nowrap}
+.vault-row{flex-direction:column;align-items:stretch;gap:14px;padding:16px}
+.vault-row-right{justify-content:space-between;width:100%;padding-top:12px;border-top:1px solid var(--border)}
+.vault-row-icon-wrap{display:flex;align-items:flex-start;gap:12px}
+.vault-name-row{flex-wrap:nowrap!important;min-width:0}
+.vault-name-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+.vault-meta-row{gap:10px 14px;font-size:11.5px;flex-wrap:wrap}
+.vault-detail-grid{grid-template-columns:1fr;padding:16px 16px 88px;gap:14px}
+.vault-detail-head{padding:18px 16px 8px}.vault-title-h1{font-size:22px}
+.dropdown-consent,.dropdown-activity{position:fixed;top:64px;left:8px;right:8px;width:auto}
+.hide-on-mobile{display:none!important}.mobile-full{width:100%}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const {useState,useEffect,useRef,useMemo}=React;
+
+/* ============================================================ */
+/* SECTION 2: ICONS                                              */
+/* ============================================================ */
+const Icon=({d,size=16,stroke=2,fill="none",style})=>
+<svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" style={style}>{d}</svg>;
+const LockIcon=p=><Icon {...p} d={<><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></>}/>;
+const UnlockIcon=p=><Icon {...p} d={<><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></>}/>;
+const UsersIcon=p=><Icon {...p} d={<><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7.5" r="3.5"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>}/>;
+const FileIcon=p=><Icon {...p} d={<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></>}/>;
+const ClockIcon=p=><Icon {...p} d={<><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></>}/>;
+const BellIcon=p=><Icon {...p} d={<><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></>}/>;
+const ActivityIcon=p=><Icon {...p} d={<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>}/>;
+const PlusIcon=p=><Icon {...p} d={<><path d="M12 5v14"/><path d="M5 12h14"/></>}/>;
+const XIcon=p=><Icon {...p} d={<><path d="M18 6 6 18"/><path d="m6 6 12 12"/></>}/>;
+const ArrowLeftIcon=p=><Icon {...p} d={<><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></>}/>;
+const ArrowRightIcon=p=><Icon {...p} d={<><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></>}/>;
+const ShieldIcon=p=><Icon {...p} d={<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>}/>;
+const UploadIcon=p=><Icon {...p} d={<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></>}/>;
+const CheckIcon=p=><Icon {...p} d={<path d="M20 6 9 17l-5-5"/>}/>;
+const HelpIcon=p=><Icon {...p} d={<><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></>}/>;
+const SettingsIcon=p=><Icon {...p} d={<><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></>}/>;
+const EditIcon=p=><Icon {...p} d={<><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></>}/>;
+const FolderIcon=p=><Icon {...p} d={<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>}/>;
+const GridIcon=p=><Icon {...p} d={<><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></>}/>;
+const KeyIcon=p=><Icon {...p} d={<><circle cx="8" cy="15" r="4"/><path d="m10.85 12.15 8.15-8.15"/><path d="m18 5 2 2"/><path d="m15 8 2 2"/></>}/>;
+const MailIcon=p=><Icon {...p} d={<><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></>}/>;
+const PercentIcon=p=><Icon {...p} d={<><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></>}/>;
+const ChevronRightIcon=p=><Icon {...p} d={<path d="M9 18l6-6-6-6"/>}/>;
+const DatabaseIcon=p=><Icon {...p} d={<><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></>}/>;
+const SparkleIcon=p=><Icon {...p} d={<path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z"/>}/>;
+
+/* ============================================================ */
+/* SECTION 3: SEED DATA                                          */
+/* ============================================================ */
+const INITIAL_VAULTS=[
+{id:"family",name:"Family Documents",description:"Important family documents and certificates",status:"locked",consent:100,
+members:[{id:"jd",name:"John Doe",email:"john.doe@example.com",initials:"JD",color:"#0a0a0a"},{id:"js",name:"Jane Smith",email:"jane.smith@example.com",initials:"JS",color:"#7a5af8"},{id:"mb",name:"Mia Brown",email:"mia.brown@example.com",initials:"MB",color:"#d97757"}],
+folders:[{id:"fam-certs",name:"Certificates",folders:[],files:[{id:"f2",name:"Birth_Certificate.pdf",type:"pdf",size:"1.1 MB",uploadedBy:"John Doe",uploadedAt:"about 1 month ago"},{id:"f3",name:"Marriage_Cert.pdf",type:"pdf",size:"890 KB",uploadedBy:"John Doe",uploadedAt:"2 months ago"}]},{id:"fam-property",name:"Property",folders:[],files:[{id:"f1",name:"Property_Deed.pdf",type:"pdf",size:"2.4 MB",uploadedBy:"Jane Smith",uploadedAt:"about 1 month ago"}]},{id:"fam-estate",name:"Estate Planning",folders:[],files:[{id:"f5",name:"Will_Testament.pdf",type:"pdf",size:"540 KB",uploadedBy:"John Doe",uploadedAt:"3 months ago"}]}],
+files:[{id:"f1",name:"Property_Deed.pdf",type:"pdf",size:"2.4 MB",uploadedBy:"Jane Smith",uploadedAt:"about 1 month ago"},{id:"f2",name:"Birth_Certificate.pdf",type:"pdf",size:"1.1 MB",uploadedBy:"John Doe",uploadedAt:"about 1 month ago"},{id:"f3",name:"Marriage_Cert.pdf",type:"pdf",size:"890 KB",uploadedBy:"John Doe",uploadedAt:"2 months ago"},{id:"f4",name:"Passport_Scan.jpg",type:"image",size:"3.2 MB",uploadedBy:"Jane Smith",uploadedAt:"2 months ago"},{id:"f5",name:"Will_Testament.pdf",type:"pdf",size:"540 KB",uploadedBy:"John Doe",uploadedAt:"3 months ago"}],
+created:"3 months ago",requestState:"pending"},
+{id:"legal",name:"Company Legal Files",description:"Confidential legal documents",status:"locked",consent:75,
+members:[{id:"jd",name:"John Doe",email:"john.doe@example.com",initials:"JD",color:"#0a0a0a"},{id:"mj",name:"Mike Johnson",email:"mike.j@example.com",initials:"MJ",color:"#10b981"},{id:"tb",name:"Tom Brown",email:"tom.b@example.com",initials:"TB",color:"#3b82f6"},{id:"sw",name:"Sarah Williams",email:"sarah.w@example.com",initials:"SW",color:"#ef4056"}],
+files:[{id:"l1",name:"NDA_Template.pdf",type:"pdf",size:"220 KB",uploadedBy:"Mike Johnson",uploadedAt:"2 months ago"},{id:"l2",name:"Incorporation.pdf",type:"pdf",size:"1.8 MB",uploadedBy:"Sarah Williams",uploadedAt:"3 months ago"},{id:"l3",name:"Board_Minutes.pdf",type:"pdf",size:"410 KB",uploadedBy:"Tom Brown",uploadedAt:"3 months ago"}],
+created:"3 months ago",requestState:"pending"},
+{id:"medical",name:"Medical Records",description:"Personal health and medical documents",status:"unlocked",consent:100,
+members:[{id:"jd",name:"John Doe",email:"john.doe@example.com",initials:"JD",color:"#0a0a0a"},{id:"js",name:"Jane Smith",email:"jane.smith@example.com",initials:"JS",color:"#7a5af8"}],
+folders:[{id:"fld-scans",name:"Scans & Reports",folders:[{id:"fld-bloodwork",name:"Bloodwork",folders:[],files:[{id:"m-bw1",name:"CBC_Panel_Mar.pdf",type:"pdf",size:"320 KB",uploadedBy:"Jane Smith",uploadedAt:"5 days ago"},{id:"m-bw2",name:"Lipid_Report_Feb.pdf",type:"pdf",size:"280 KB",uploadedBy:"Jane Smith",uploadedAt:"1 month ago"}]},{id:"fld-imaging",name:"Imaging",folders:[],files:[{id:"m-mri",name:"MRI_L_Knee.jpg",type:"image",size:"8.2 MB",uploadedBy:"John Doe",uploadedAt:"3 weeks ago"},{id:"m-xray",name:"Chest_X-Ray.jpg",type:"image",size:"4.1 MB",uploadedBy:"John Doe",uploadedAt:"3 weeks ago"}]}],files:[{id:"m-sum",name:"Annual_Summary_2025.pdf",type:"pdf",size:"1.4 MB",uploadedBy:"Jane Smith",uploadedAt:"3 days ago"}]},{id:"fld-prescriptions",name:"Prescriptions",folders:[],files:[{id:"m-rx1",name:"Rx_Atorvastatin.pdf",type:"pdf",size:"180 KB",uploadedBy:"John Doe",uploadedAt:"1 week ago"},{id:"m-rx2",name:"Rx_Notes_Audio.m4a",type:"audio",size:"2.8 MB",uploadedBy:"Jane Smith",uploadedAt:"1 week ago"}]},{id:"fld-insurance",name:"Insurance",folders:[],files:[{id:"m-ins1",name:"Policy_2026.pdf",type:"pdf",size:"620 KB",uploadedBy:"John Doe",uploadedAt:"2 weeks ago"},{id:"m-ins2",name:"Claim_Form.docx",type:"document",size:"42 KB",uploadedBy:"Jane Smith",uploadedAt:"2 weeks ago"}]}],
+files:[{id:"m1",name:"Vaccination_Record.pdf",type:"pdf",size:"480 KB",uploadedBy:"John Doe",uploadedAt:"2 weeks ago"},{id:"m2",name:"Consultation_Recording.mp4",type:"video",size:"184 MB",uploadedBy:"Jane Smith",uploadedAt:"3 weeks ago"},{id:"m3",name:"Allergy_Test.jpg",type:"image",size:"2.6 MB",uploadedBy:"Jane Smith",uploadedAt:"1 month ago"},{id:"m4",name:"Consent_Form.docx",type:"document",size:"56 KB",uploadedBy:"John Doe",uploadedAt:"1 month ago"},{id:"m5",name:"Therapy_Notes.m4a",type:"audio",size:"14.2 MB",uploadedBy:"Jane Smith",uploadedAt:"1 month ago"},{id:"m6",name:"Family_History.rtf",type:"other",size:"22 KB",uploadedBy:"John Doe",uploadedAt:"2 months ago"}],
+created:"about 2 months ago",accessed:"20 days ago"},
+{id:"project",name:"Project Archive",description:"Important project files and deliverables",status:"locked",consent:75,
+members:[{id:"jd",name:"John Doe",email:"john.doe@example.com",initials:"JD",color:"#0a0a0a"},{id:"mj",name:"Mike Johnson",email:"mike.j@example.com",initials:"MJ",color:"#10b981"},{id:"tb",name:"Tom Brown",email:"tom.b@example.com",initials:"TB",color:"#3b82f6"},{id:"av",name:"Ana Vega",email:"ana.v@example.com",initials:"AV",color:"#f59e0b"}],
+files:[{id:"p1",name:"Handoff_Doc.pdf",type:"pdf",size:"1.2 MB",uploadedBy:"Mike Johnson",uploadedAt:"3 months ago"}],
+created:"3 months ago",requestState:null}
+];
+const CONSENT_REQUESTS=[
+{id:"cr1",vaultName:"Family Documents",requester:"Jane Smith",when:"17 days ago",approvals:1,total:3},
+{id:"cr2",vaultName:"Company Legal Files",requester:"Sarah Williams",when:"17 days ago",approvals:2,total:4}
+];
+const RECENT_ACTIVITY=[
+{id:"a1",who:"Mike Johnson",action:"approved access",vault:"Company Legal Files",when:"17 days ago",type:"approve"},
+{id:"a2",who:"Tom Brown",action:"approved access",vault:"Company Legal Files",when:"17 days ago",type:"approve"},
+{id:"a3",who:"Sarah Williams",action:"requested access",vault:"Company Legal Files",when:"17 days ago",type:"request"},
+{id:"a4",who:"Jane Smith",action:"uploaded Property_Deed.pdf",vault:"Family Documents",when:"about 1 month ago",type:"upload"},
+{id:"a5",who:"John Doe",action:"uploaded Birth_Certificate.pdf",vault:"Family Documents",when:"about 1 month ago",type:"upload"}
+];
+
+/* ============================================================ */
+/* SECTION 4: SHARED UI COMPONENTS                               */
+/* ============================================================ */
+const inputStyle={width:"100%",padding:"10px 12px",border:"1px solid var(--border-strong)",borderRadius:8,fontSize:13.5,outline:"none",background:"white",transition:"border-color 120ms,box-shadow 120ms"};
+
+function ModalShell({children,onClose,width=480}){
+  useEffect(()=>{const h=e=>{if(e.key==="Escape")onClose()};document.addEventListener("keydown",h);document.body.style.overflow="hidden";return()=>{document.removeEventListener("keydown",h);document.body.style.overflow=""}},[onClose]);
+  return(<div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.4)",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",padding:20,animation:"fadeIn 140ms ease"}}>
+    <div onClick={e=>e.stopPropagation()} style={{background:"white",borderRadius:14,width:"100%",maxWidth:width,maxHeight:"90vh",overflow:"auto",boxShadow:"var(--shadow-lg)",animation:"scaleIn 180ms cubic-bezier(0.2,0.8,0.2,1)"}}>{children}</div></div>);
+}
+function Toast({toast}){
+  if(!toast)return null;
+  const c=toast.kind==="success"?"#10b981":toast.kind==="danger"?"#ef4056":"#0a0a0a";
+  return(<div style={{position:"fixed",bottom:32,left:"50%",transform:"translateX(-50%)",background:"#0a0a0a",color:"white",padding:"10px 18px",borderRadius:99,fontSize:13,fontWeight:500,display:"flex",alignItems:"center",gap:8,boxShadow:"0 8px 32px rgba(0,0,0,0.25)",zIndex:200,animation:"slideDown 160ms ease"}}>
+    <div style={{width:6,height:6,borderRadius:99,background:c}}/>{toast.msg}</div>);
+}
+function HelpFab(){return(<button style={{position:"fixed",bottom:18,right:18,width:32,height:32,borderRadius:99,background:"white",border:"1px solid var(--border)",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--text-muted)",zIndex:40,boxShadow:"var(--shadow-sm)"}}><HelpIcon size={16}/></button>)}
+function PrimaryButton({children,onClick,full}){return(<button onClick={onClick} style={{background:"#0a0a0a",color:"white",padding:"9px 16px",borderRadius:8,fontSize:13,fontWeight:500,transition:"opacity 120ms",width:full?"100%":"auto"}} onMouseEnter={e=>e.currentTarget.style.opacity="0.88"} onMouseLeave={e=>e.currentTarget.style.opacity="1"}>{children}</button>)}
+function MutedButton({children}){return(<button disabled style={{background:"#7a7a7a",color:"white",padding:"9px 16px",borderRadius:8,fontSize:13,fontWeight:500,cursor:"not-allowed",opacity:.9}}>{children}</button>)}
+function SecondaryButton({children,onClick}){return(<button onClick={onClick} style={{display:"flex",alignItems:"center",gap:6,padding:"9px 16px",borderRadius:8,background:"white",color:"#0a0a0a",border:"1px solid var(--border-strong)",fontSize:13,fontWeight:500}}>{children}</button>)}
+function StatusBadge({unlocked}){return(<span style={{fontSize:11,fontWeight:600,padding:"3px 9px",borderRadius:99,background:unlocked?"#10b981":"var(--danger)",color:"white",letterSpacing:"-0.005em"}}>{unlocked?"Unlocked":"Locked"}</span>)}
+function InlineMeta({icon,children}){return(<div style={{display:"flex",alignItems:"center",gap:5}}>{icon}{children}</div>)}
+function FieldLabel({children,required,style}){return(<label style={{display:"block",fontSize:12.5,fontWeight:500,marginBottom:6,...(style||{})}}>{children}{required&&<span style={{color:"var(--danger)",marginLeft:3}}>*</span>}</label>)}
+function SectionTitle({children,style}){return <div style={{fontSize:15,fontWeight:600,marginBottom:10,...(style||{})}}>{children}</div>}
+function SelectCard({selected,onClick,children}){return(<button onClick={onClick} style={{display:"block",width:"100%",textAlign:"left",padding:"14px 14px",borderRadius:10,border:selected?"1.5px solid #0a0a0a":"1px solid var(--border)",background:selected?"#fafafa":"white",transition:"all 120ms"}}>{children}</button>)}
+function IconTile({children,tone}){const t={neutral:{bg:"#f0f0f0",fg:"#0a0a0a"},success:{bg:"#e6faf1",fg:"#10b981"},danger:{bg:"#ffe4e8",fg:"#ef4056"}}[tone||"neutral"];return(<div style={{width:36,height:36,borderRadius:9,background:t.bg,color:t.fg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{children}</div>)}
+function ReviewRow({label,value}){return(<div style={{display:"flex",justifyContent:"space-between",fontSize:13,gap:12}}><span style={{color:"var(--text-muted)"}}>{label}</span><span style={{fontWeight:600,textAlign:"right"}}>{value||"—"}</span></div>)}
+function Panel({children}){return(<div style={{background:"white",border:"1px solid var(--border)",borderRadius:14,padding:20}}>{children}</div>)}
+function PanelHeader({icon,children}){return(<div style={{display:"flex",alignItems:"center",gap:8,fontSize:14,fontWeight:600}}>{icon}{children}</div>)}
+function IconButton({children,onClick,active}){return(<button onClick={onClick} style={{width:36,height:36,borderRadius:8,border:"1px solid var(--border)",background:active?"#f5f5f5":"white",display:"flex",alignItems:"center",justifyContent:"center",transition:"background 120ms,border-color 120ms",color:"#0a0a0a"}} onMouseEnter={e=>{if(!active)e.currentTarget.style.background="#fafafa"}} onMouseLeave={e=>{if(!active)e.currentTarget.style.background="white"}}>{children}</button>)}
+
+/* ============================================================ */
+/* SECTION 5: TOPBAR + CONSENT / ACTIVITY PANELS                 */
+/* ============================================================ */
+function TopBar({notifications,openPanel,setOpenPanel,consentRequests,activity,onConsentAction,onOpenVault}){
+  const ref=useRef(null);
+  useEffect(()=>{const h=e=>{if(ref.current&&!ref.current.contains(e.target))setOpenPanel(null)};document.addEventListener("mousedown",h);return()=>document.removeEventListener("mousedown",h)},[setOpenPanel]);
+  return(<div style={{background:"#fff",borderBottom:"1px solid var(--border)",position:"sticky",top:0,zIndex:20}}>
+    <div className="topbar-inner">
+      <div style={{display:"flex",alignItems:"center",gap:12}}>
+        <div style={{width:38,height:38,background:"#0a0a0a",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",color:"white",flexShrink:0}}><LockIcon size={18} stroke={2.2}/></div>
+        <div><div style={{fontSize:16,fontWeight:700,letterSpacing:"-0.01em"}}>Nirvana</div><div className="brand-sub">End-to-end encrypted storage</div></div>
+      </div>
+      <div ref={ref} style={{display:"flex",alignItems:"center",gap:10,position:"relative"}}>
+        <IconButton active={openPanel==="activity"} onClick={()=>setOpenPanel(openPanel==="activity"?null:"activity")}><ActivityIcon size={17}/></IconButton>
+        <div style={{position:"relative"}}>
+          <IconButton active={openPanel==="consent"} onClick={()=>setOpenPanel(openPanel==="consent"?null:"consent")}><BellIcon size={17}/></IconButton>
+          {notifications>0&&<div style={{position:"absolute",top:-4,right:-4,minWidth:18,height:18,padding:"0 5px",background:"var(--danger)",color:"white",borderRadius:99,fontSize:11,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",border:"2px solid white"}}>{notifications}</div>}
+        </div>
+        <div style={{width:36,height:36,borderRadius:99,background:"#0a0a0a",color:"white",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:600}}>JD</div>
+        {openPanel==="consent"&&<ConsentPanel requests={consentRequests} onAction={onConsentAction} onClose={()=>setOpenPanel(null)}/>}
+        {openPanel==="activity"&&<ActivityPanel items={activity} onClose={()=>setOpenPanel(null)}/>}
+      </div>
+    </div>
+  </div>);
+}
+
+function ConsentPanel({requests,onAction}){
+  return(<div className="dropdown-consent" style={{background:"white",border:"1px solid var(--border)",borderRadius:12,boxShadow:"var(--shadow-md)",padding:16,animation:"slideDown 160ms ease",zIndex:50}}>
+    <div style={{fontSize:15,fontWeight:600,marginBottom:12}}>Consent Requests</div>
+    {requests.length===0?<div style={{padding:"24px 0",textAlign:"center",color:"var(--text-muted)",fontSize:13}}>No pending requests</div>:
+    <div style={{display:"flex",flexDirection:"column",gap:10}}>
+      {requests.map(r=><div key={r.id} style={{background:"#fff6ea",border:"1px solid #ffe0b8",borderRadius:10,padding:12}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
+          <div style={{fontSize:13,fontWeight:600}}>{r.vaultName}</div>
+          <div style={{fontSize:11,fontWeight:500,background:"white",padding:"3px 8px",borderRadius:99,border:"1px solid #f0d4a8"}}>{r.approvals} approved</div>
+        </div>
+        <div style={{fontSize:11.5,color:"var(--text-muted)",marginBottom:10}}>By {r.requester} · {r.when}</div>
+        <div style={{display:"flex",gap:6}}>
+          <button onClick={()=>onAction(r.id,"reject")} style={{flex:1,padding:"8px 0",background:"white",border:"1px solid var(--border-strong)",borderRadius:7,fontSize:12.5,fontWeight:500}}>Reject</button>
+          <button onClick={()=>onAction(r.id,"approve")} style={{flex:1,padding:"8px 0",background:"#0a0a0a",color:"white",border:"none",borderRadius:7,fontSize:12.5,fontWeight:500}}>Approve</button>
+        </div>
+      </div>)}
+    </div>}
+    <div style={{borderTop:"1px solid var(--border)",marginTop:14,paddingTop:12,textAlign:"center",fontSize:12.5,fontWeight:500,color:"#0a0a0a",cursor:"pointer"}}>See All Consent Requests</div>
+  </div>);
+}
+
+function ActivityPanel({items}){
+  const dot=t=>{const c=t==="approve"?"#10b981":t==="request"?"#f59e0b":t==="upload"?"#3b82f6":"#9a9a9a";return<div style={{width:8,height:8,borderRadius:99,background:c,marginTop:6,flexShrink:0}}/>};
+  return(<div className="dropdown-activity" style={{background:"white",border:"1px solid var(--border)",borderRadius:12,boxShadow:"var(--shadow-md)",padding:16,animation:"slideDown 160ms ease",zIndex:50}}>
+    <div style={{fontSize:15,fontWeight:600,marginBottom:12}}>Recent Activity</div>
+    <div style={{display:"flex",flexDirection:"column",gap:2}}>
+      {items.map(i=><div key={i.id} style={{display:"flex",gap:10,padding:"10px 4px",borderBottom:"1px solid #f3f3f3"}}>
+        {dot(i.type)}
+        <div style={{minWidth:0,flex:1}}>
+          <div style={{fontSize:13}}><span style={{fontWeight:600}}>{i.who}</span><span style={{color:"var(--text-muted)"}}> {i.action}</span></div>
+          <div style={{fontSize:11.5,color:"var(--text-soft)",marginTop:2}}>{i.vault} · {i.when}</div>
+        </div>
+      </div>)}
+    </div>
+    <div style={{marginTop:10,paddingTop:10,textAlign:"center",fontSize:12.5,fontWeight:500,cursor:"pointer"}}>See All Activity</div>
+  </div>);
+}
+
+/* ============================================================ */
+/* SECTION 6: DASHBOARD + VAULT ROW                              */
+/* ============================================================ */
+function Dashboard({vaults,onCreate,onOpen,onRequestAccess}){
+  return(<div className="page-wrap">
+    <div className="dashboard-header">
+      <div><h1 className="dashboard-h1">Your Drives</h1><p style={{margin:"6px 0 0",color:"var(--text-muted)",fontSize:14}}>Secure, encrypted storage with consent-based access</p></div>
+      <button className="dashboard-create-btn" onClick={onCreate} style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,background:"#0a0a0a",color:"white",padding:"11px 18px",borderRadius:9,fontSize:13.5,fontWeight:500,transition:"transform 100ms",whiteSpace:"nowrap"}} onMouseDown={e=>e.currentTarget.style.transform="scale(0.97)"} onMouseUp={e=>e.currentTarget.style.transform="scale(1)"} onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}>
+        <PlusIcon size={15}/><span>New Drive</span>
+      </button>
+    </div>
+    <div style={{display:"flex",flexDirection:"column",gap:12}}>{vaults.map(v=><VaultRow key={v.id} vault={v} onOpen={onOpen} onRequestAccess={onRequestAccess}/>)}</div>
+  </div>);
+}
+
+function VaultRow({vault,onOpen,onRequestAccess}){
+  const[hover,setHover]=useState(false);
+  const isU=vault.status==="unlocked";
+  const LockEl=isU?UnlockIcon:LockIcon;
+  const iconTint=isU?"#10b981":"#ef4056";
+  const iconBg=isU?"#e6faf1":"#ffe4e8";
+  const btn=()=>{if(isU)return<PrimaryButton onClick={()=>onOpen(vault.id)}>Open Vault</PrimaryButton>;if(vault.requestState==="pending")return<MutedButton>Request Pending</MutedButton>;return<PrimaryButton onClick={()=>onRequestAccess(vault.id)}>Request Access</PrimaryButton>};
+  return(<div className="vault-row" onMouseEnter={()=>setHover(true)} onMouseLeave={()=>setHover(false)} style={{background:"white",border:"1px solid var(--border)",borderRadius:12,transition:"border-color 120ms,box-shadow 120ms,transform 120ms",boxShadow:hover?"0 4px 18px rgba(0,0,0,0.05)":"none",borderColor:hover?"var(--border-strong)":"var(--border)"}}>
+    <div className="vault-row-icon-wrap" style={{display:"flex",alignItems:"flex-start",gap:14,flex:1,minWidth:0}}>
+      <div style={{width:40,height:40,borderRadius:10,background:iconBg,color:iconTint,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><LockEl size={19}/></div>
+      <div style={{flex:1,minWidth:0}}>
+        <div className="vault-name-row" style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}><span className="vault-name-text" style={{fontSize:15,fontWeight:600}}>{vault.name}</span><StatusBadge unlocked={isU}/></div>
+        <div style={{fontSize:13,color:"var(--text-muted)",marginBottom:8}}>{vault.description}</div>
+        <div className="vault-meta-row">
+          <InlineMeta icon={<UsersIcon size={12.5}/>}>{vault.members.length} members</InlineMeta>
+          <InlineMeta icon={<FileIcon size={12.5}/>}>{vault.files.length} files</InlineMeta>
+          <InlineMeta icon={<ClockIcon size={12.5}/>}>{isU?`Accessed ${vault.accessed}`:`Created ${vault.created}`}</InlineMeta>
+        </div>
+      </div>
+    </div>
+    <div className="vault-row-right">
+      <div style={{fontSize:12,color:"var(--text-muted)"}}>Requires <span style={{fontWeight:600,color:"var(--text)"}}>{vault.consent}%</span> consent</div>
+      {btn()}
+    </div>
+  </div>);
+}
+
+/* ============================================================ */
+/* SECTION 7: VAULT DETAIL + FOLDER BROWSER + FILE ROW           */
+/* ============================================================ */
+function FileRow({file}){
+  const tc={pdf:{bg:"#ffe4e8",fg:"#ef4056"},image:{bg:"#e6faf1",fg:"#10b981"},video:{bg:"#eef0ff",fg:"#5a6ff8"},audio:{bg:"#fff1e0",fg:"#d97757"},document:{bg:"#eaf2ff",fg:"#3b82f6"},other:{bg:"#f1eaff",fg:"#7a5af8"}}[file.type]||{bg:"#f5f5f5",fg:"#9a9a9a"};
+  return(<div style={{display:"flex",alignItems:"center",gap:12,padding:"10px 6px",borderBottom:"1px solid #f3f3f3",transition:"background 100ms"}} onMouseEnter={e=>e.currentTarget.style.background="#fafafa"} onMouseLeave={e=>e.currentTarget.style.background="white"}>
+    <div style={{width:34,height:34,borderRadius:8,background:tc.bg,color:tc.fg,display:"flex",alignItems:"center",justifyContent:"center"}}><FileIcon size={15}/></div>
+    <div style={{flex:1,minWidth:0}}>
+      <div style={{fontSize:13,fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{file.name}</div>
+      <div style={{fontSize:11.5,color:"var(--text-soft)"}}>{file.size} · {file.uploadedBy} · {file.uploadedAt}</div>
+    </div>
+  </div>);
+}
+
+function FolderBrowser({folderView,currentFolder,setCurrentFolder}){
+  const{node,crumbs}=folderView;
+  const folders=node.folders||[];const files=node.files||[];
+  const goTo=idx=>setCurrentFolder(currentFolder.slice(0,idx));
+  const openFolder=id=>setCurrentFolder([...currentFolder,id]);
+  const isEmpty=folders.length===0&&files.length===0;
+  return(<div>
+    <div style={{display:"flex",alignItems:"center",gap:4,flexWrap:"wrap",marginBottom:16,fontSize:13}}>
+      {crumbs.map((c,i)=><React.Fragment key={c.id+i}>{i>0&&<span style={{color:"var(--text-soft)"}}>/</span>}
+        <button onClick={()=>goTo(i)} style={{padding:"3px 8px",borderRadius:6,color:i===crumbs.length-1?"#0a0a0a":"var(--text-muted)",fontWeight:i===crumbs.length-1?600:500,background:"transparent"}} onMouseEnter={e=>{if(i!==crumbs.length-1)e.currentTarget.style.background="#f5f5f5"}} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>{c.name}</button>
+      </React.Fragment>)}
+    </div>
+    {isEmpty?<div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"64px 0",color:"var(--text-soft)"}}>
+      <div style={{width:64,height:64,borderRadius:14,background:"#f5f5f5",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:12,color:"#c2c2c2"}}><FolderIcon size={30} stroke={1.6}/></div>
+      <div style={{fontSize:13}}>This folder is empty</div></div>:
+    <>
+      {folders.length>0&&<><div style={{fontSize:11,fontWeight:600,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:8}}>Folders</div>
+        <div style={{display:"flex",flexDirection:"column",gap:2,marginBottom:files.length>0?22:0}}>
+          {folders.map(f=><button key={f.id} onClick={()=>openFolder(f.id)} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 6px",borderRadius:0,border:"none",borderBottom:"1px solid #f3f3f3",background:"white",textAlign:"left",width:"100%",transition:"background 100ms"}} onMouseEnter={e=>e.currentTarget.style.background="#fafafa"} onMouseLeave={e=>e.currentTarget.style.background="white"}>
+            <div style={{width:34,height:34,borderRadius:8,background:"#f3f0ff",color:"#7a5af8",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><FolderIcon size={16} stroke={2}/></div>
+            <div style={{minWidth:0,flex:1}}><div style={{fontSize:13,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.name}</div><div style={{fontSize:11.5,color:"var(--text-soft)"}}>{(f.folders||[]).length+(f.files||[]).length} items</div></div>
+            <ChevronRightIcon size={14} style={{color:"var(--text-soft)",flexShrink:0}}/>
+          </button>)}
+        </div></>}
+      {files.length>0&&<><div style={{fontSize:11,fontWeight:600,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:8}}>Files</div>
+        <div style={{display:"flex",flexDirection:"column",gap:2}}>{files.map(f=><FileRow key={f.id} file={f}/>)}</div></>}
+    </>}
+  </div>);
+}
+
+function UploadModal({onClose,onUpload}){
+  const[name,setName]=useState("");
+  const submit=()=>{if(!name.trim())return;const ext=name.split(".").pop().toLowerCase();const type=["jpg","jpeg","png","gif","webp"].includes(ext)?"image":["mp4","mov","avi"].includes(ext)?"video":"pdf";const sizes=["780 KB","1.2 MB","2.4 MB","3.1 MB","640 KB"];onUpload({id:`new${Date.now()}`,name:name.trim(),type,size:sizes[Math.floor(Math.random()*sizes.length)],uploadedBy:"John Doe",uploadedAt:"just now"})};
+  return(<ModalShell onClose={onClose} width={420}><div style={{padding:"24px 26px"}}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+      <div><div style={{fontSize:17,fontWeight:700,letterSpacing:"-0.01em"}}>Upload File</div><div style={{fontSize:12.5,color:"var(--text-muted)",marginTop:3}}>Files are encrypted before upload</div></div>
+      <button onClick={onClose} style={{color:"var(--text-muted)"}}><XIcon size={16}/></button>
+    </div>
+    <FieldLabel required style={{marginTop:18}}>File name</FieldLabel>
+    <input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g., Contract_2025.pdf" style={inputStyle} autoFocus/>
+    <div style={{marginTop:14,border:"2px dashed var(--border-strong)",borderRadius:10,padding:"28px 0",textAlign:"center",color:"var(--text-muted)",fontSize:13}}><UploadIcon size={22}/><div style={{marginTop:6}}>Drop files here or click to browse</div></div>
+    <div style={{display:"flex",gap:8,marginTop:20,justifyContent:"flex-end"}}><SecondaryButton onClick={onClose}>Cancel</SecondaryButton><PrimaryButton onClick={submit}>Upload</PrimaryButton></div>
+  </div></ModalShell>);
+}
+
+function VaultDetail({vault,onBack,onUpload,onRename}){
+  const[tab,setTab]=useState("All");
+  const[uploadOpen,setUploadOpen]=useState(false);
+  const[settingsOpen,setSettingsOpen]=useState(false);
+  const[viewMode,setViewMode]=useState("folders");
+  const[currentFolder,setCurrentFolder]=useState([]);
+  const[editingName,setEditingName]=useState(false);
+  const[draftName,setDraftName]=useState(vault.name);
+  useEffect(()=>{setDraftName(vault.name)},[vault.name]);
+  const commitRename=()=>{const t=draftName.trim();setEditingName(false);if(t&&t!==vault.name&&onRename)onRename(vault.id,t);else setDraftName(vault.name)};
+  const tabs=["All","Images","Videos","Audios","Documents","PDFs","Others"];
+  const filtered=useMemo(()=>{const f=vault.files||[];if(tab==="All")return f;if(tab==="PDFs")return f.filter(x=>x.type==="pdf");if(tab==="Images")return f.filter(x=>x.type==="image");if(tab==="Videos")return f.filter(x=>x.type==="video");if(tab==="Audios")return f.filter(x=>x.type==="audio");if(tab==="Documents")return f.filter(x=>x.type==="document");if(tab==="Others")return f.filter(x=>!["pdf","image","video","audio","document"].includes(x.type));return f},[tab,vault.files]);
+  const folderView=useMemo(()=>{const root={id:"root",name:vault.name,folders:vault.folders||[],files:(vault.files||[]).filter(f=>!f.folderId)};let node=root;const crumbs=[{id:"root",name:vault.name}];for(const id of currentFolder){const next=(node.folders||[]).find(f=>f.id===id);if(!next)break;crumbs.push({id:next.id,name:next.name});node=next}return{node,crumbs}},[vault,currentFolder]);
+
+  return(<div style={{animation:"fadeIn 200ms ease"}}>
+    <div className="vault-detail-head">
+      <button onClick={onBack} style={{display:"flex",alignItems:"center",gap:6,fontSize:13.5,color:"var(--text-muted)",marginBottom:18}} onMouseEnter={e=>e.currentTarget.style.color="#0a0a0a"} onMouseLeave={e=>e.currentTarget.style.color="var(--text-muted)"}><ArrowLeftIcon size={15}/> Back to Dashboard</button>
+      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:6,gap:12}}>
+        <div style={{minWidth:0,flex:1}}>
+          {editingName?<input value={draftName} autoFocus onChange={e=>setDraftName(e.target.value)} onBlur={commitRename} onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();commitRename()}if(e.key==="Escape"){setDraftName(vault.name);setEditingName(false)}}} className="vault-title-h1" style={{width:"100%",background:"white",border:"1px solid var(--border-strong)",borderRadius:8,padding:"2px 10px",outline:"none"}}/>:
+          <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+            <h1 className="vault-title-h1" style={{margin:0}}>{vault.name}</h1>
+            <button onClick={()=>{setDraftName(vault.name);setEditingName(true)}} title="Rename drive" style={{padding:6,borderRadius:7,color:"var(--text-muted)",display:"inline-flex",alignItems:"center",justifyContent:"center"}} onMouseEnter={e=>{e.currentTarget.style.background="#f5f5f5";e.currentTarget.style.color="#0a0a0a"}} onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.color="var(--text-muted)"}}><EditIcon size={14}/></button>
+          </div>}
+          <p style={{margin:"6px 0 0",color:"var(--text-muted)",fontSize:14}}>{vault.description}</p>
+        </div>
+        <StatusBadge unlocked={vault.status==="unlocked"}/>
+      </div>
+    </div>
+
+    <div className="vault-detail-grid">
+      <div style={{background:"white",border:"1px solid var(--border)",borderRadius:14,padding:22,minHeight:400}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,gap:10,flexWrap:"wrap"}}>
+          <div style={{fontSize:16,fontWeight:600}}>{viewMode==="categories"?`Files (${filtered.length})`:"My Files"}</div>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <div style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:"var(--text-muted)"}}><ShieldIcon size={13}/> End-to-end encrypted</div>
+            <div style={{background:"#f5f5f5",borderRadius:8,padding:3,display:"flex"}}>
+              <button onClick={()=>setViewMode("folders")} style={{padding:"6px 10px",borderRadius:6,display:"flex",alignItems:"center",gap:6,background:viewMode==="folders"?"white":"transparent",boxShadow:viewMode==="folders"?"0 1px 2px rgba(0,0,0,0.06)":"none",color:viewMode==="folders"?"#0a0a0a":"var(--text-muted)",fontSize:12,fontWeight:500}}><FolderIcon size={13}/> Folders</button>
+              <button onClick={()=>setViewMode("categories")} style={{padding:"6px 10px",borderRadius:6,display:"flex",alignItems:"center",gap:6,background:viewMode==="categories"?"white":"transparent",boxShadow:viewMode==="categories"?"0 1px 2px rgba(0,0,0,0.06)":"none",color:viewMode==="categories"?"#0a0a0a":"var(--text-muted)",fontSize:12,fontWeight:500}}><GridIcon size={13}/> Categories</button>
+            </div>
+          </div>
+        </div>
+        {viewMode==="categories"?<>
+          <div style={{background:"#f5f5f5",borderRadius:10,padding:4,display:"flex",marginBottom:20,overflowX:"auto",gap:2}}>
+            {tabs.map(t=><button key={t} onClick={()=>setTab(t)} style={{flex:"1 0 auto",padding:"8px 14px",borderRadius:7,background:tab===t?"white":"transparent",fontSize:12.5,fontWeight:tab===t?600:500,color:tab===t?"#0a0a0a":"var(--text-muted)",boxShadow:tab===t?"0 1px 2px rgba(0,0,0,0.06)":"none",transition:"all 120ms",whiteSpace:"nowrap"}}>{t}</button>)}
+          </div>
+          {filtered.length===0?<div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"64px 0",color:"var(--text-soft)"}}>
+            <div style={{width:64,height:64,borderRadius:14,background:"#f5f5f5",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:12,color:"#c2c2c2"}}><FileIcon size={30} stroke={1.6}/></div>
+            <div style={{fontSize:13}}>No files in this category</div></div>:
+          <div style={{display:"flex",flexDirection:"column",gap:2}}>{filtered.map(f=><FileRow key={f.id} file={f}/>)}</div>}
+        </>:<FolderBrowser folderView={folderView} currentFolder={currentFolder} setCurrentFolder={setCurrentFolder}/>}
+      </div>
+
+      <div style={{display:"flex",flexDirection:"column",gap:16}}>
+        <Panel><PanelHeader icon={<UsersIcon size={15}/>}>Vault Members</PanelHeader>
+          <div style={{display:"flex",flexDirection:"column",gap:12,marginTop:12}}>
+            {vault.members.map(m=><div key={m.id} style={{display:"flex",alignItems:"center",gap:10}}>
+              <div style={{width:34,height:34,borderRadius:99,background:m.color,color:"white",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:600}}>{m.initials}</div>
+              <div style={{minWidth:0}}><div style={{fontSize:13,fontWeight:600}}>{m.name}</div><div style={{fontSize:11.5,color:"var(--text-muted)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{m.email}</div></div>
+            </div>)}
+          </div>
+        </Panel>
+        <Panel><PanelHeader>Drive Settings</PanelHeader>
+          <div style={{display:"flex",flexDirection:"column",gap:14,marginTop:14}}>
+            <div><div style={{fontSize:12.5,color:"var(--text-muted)",marginBottom:3}}>Consent Threshold</div><div style={{fontSize:22,fontWeight:700,letterSpacing:"-0.01em"}}>{vault.consent}%</div><div style={{fontSize:11.5,color:"#10b981",marginTop:2}}>Required approval from drive members</div></div>
+            <div><div style={{fontSize:12.5,color:"var(--text-muted)",marginBottom:4}}>Encryption</div><div style={{display:"flex",alignItems:"center",gap:6,fontSize:13}}><ShieldIcon size={13.5} stroke={2}/>AES-256 End-to-End</div></div>
+            <div><div style={{fontSize:12.5,color:"var(--text-muted)",marginBottom:2}}>Created</div><div style={{fontSize:13}}>{vault.created}</div></div>
+            <button onClick={()=>setSettingsOpen(true)} style={{marginTop:4,padding:"10px 12px",borderRadius:9,background:"#0a0a0a",color:"white",fontSize:13,fontWeight:500,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><SettingsIcon size={14}/> Configure Drive</button>
+          </div>
+        </Panel>
+      </div>
+    </div>
+
+    <button onClick={()=>setUploadOpen(true)} style={{position:"fixed",bottom:32,right:32,width:52,height:52,borderRadius:99,background:"#0a0a0a",color:"white",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 24px rgba(0,0,0,0.2)",zIndex:50}} onMouseEnter={e=>e.currentTarget.style.transform="scale(1.06)"} onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}><UploadIcon size={20}/></button>
+    {settingsOpen&&<DriveSettingsModal vault={vault} onClose={()=>setSettingsOpen(false)} onRename={onRename}/>}
+    {uploadOpen&&<UploadModal onClose={()=>setUploadOpen(false)} onUpload={file=>{onUpload(vault.id,file);setUploadOpen(false)}}/>}
+  </div>);
+}
+
+/* ============================================================ */
+/* SECTION 8: CREATE VAULT WIZARD (STEPS 1-8)                    */
+/* ============================================================ */
+function StepIndicator({step,total}){
+  return(<div style={{display:"flex",alignItems:"center",gap:0,marginTop:4}}>
+    {Array.from({length:total}).map((_,i)=>{const n=i+1;const done=n<step;const cur=n===step;return(<React.Fragment key={i}>
+      <div style={{width:26,height:26,borderRadius:99,display:"flex",alignItems:"center",justifyContent:"center",background:done?"#10b981":cur?"#0a0a0a":"white",color:done||cur?"white":"var(--text-muted)",border:done||cur?"none":"1.5px solid var(--border-strong)",fontSize:11,fontWeight:600,transition:"all 180ms",flexShrink:0}}>{done?<CheckIcon size={11}/>:n}</div>
+      {i<total-1&&<div style={{flex:1,height:2,minWidth:6,background:done?"#10b981":"var(--border)",transition:"background 180ms"}}/>}
+    </React.Fragment>)})}
+  </div>);
+}
+
+function Step1Setup({data,update,maxMembers}){
+  const addMember=()=>{const e=data.newMemberEmail.trim().toLowerCase();if(!e.includes("@")||data.members.includes(e)||data.members.length>=maxMembers)return;update("members",[...data.members,e]);update("newMemberEmail","");update("inviteStatus",p=>({...p,[e]:"pending"}));const delay=2200+Math.random()*2200;const will=Math.random()>0.15;setTimeout(()=>{update("inviteStatus",p=>p[e]==="pending"?{...p,[e]:will?"accepted":"declined"}:p)},delay)};
+  const remove=email=>{update("members",data.members.filter(m=>m!==email));update("inviteStatus",p=>{const{[email]:_,...rest}=p;return rest})};
+  return(<div style={{animation:"slideInLeft 160ms ease"}}>
+    <FieldLabel required>Drive Name</FieldLabel>
+    <input value={data.name} onChange={e=>update("name",e.target.value)} placeholder="e.g., Our Family Vault" style={inputStyle}/>
+    <FieldLabel required style={{marginTop:14}}>Drive Type</FieldLabel>
+    <div style={{display:"flex",flexDirection:"column",gap:8}}>
+      {[{id:"couple",title:"Couple Drive",sub:"Max 2 members · 100% consent required"},{id:"family",title:"Family Drive",sub:"Max 6 members · 50–90% configurable consent"}].map(t=>
+        <SelectCard key={t.id} selected={data.vaultType===t.id} onClick={()=>{update("vaultType",t.id);if(t.id==="couple"&&data.members.length>1)update("members",data.members.slice(0,1))}}>
+          <div style={{fontSize:13.5,fontWeight:600}}>{t.title}</div><div style={{fontSize:12.5,color:"var(--text-muted)",marginTop:2}}>{t.sub}</div>
+        </SelectCard>)}
+    </div>
+    {data.vaultType&&<>
+      <SectionTitle style={{marginTop:20}}>Invite members</SectionTitle>
+      <div style={{display:"flex",gap:8}}>
+        <div style={{position:"relative",flex:1}}><MailIcon size={14} style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",color:"var(--text-muted)"}}/><input value={data.newMemberEmail} onChange={e=>update("newMemberEmail",e.target.value)} onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();addMember()}}} placeholder="name@example.com" disabled={data.members.length>=maxMembers} style={{...inputStyle,paddingLeft:34}}/></div>
+        <PrimaryButton onClick={addMember}>Send Invite</PrimaryButton>
+      </div>
+      <div style={{fontSize:11.5,color:"var(--text-soft)",marginTop:6}}>{data.members.length} / {maxMembers} invites sent · Vault activates only after invitees accept</div>
+      <div style={{marginTop:14,display:"flex",flexDirection:"column",gap:8}}>
+        {data.members.map((m,i)=>{const status=data.inviteStatus[m]||"pending";return(
+          <div key={m} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:status==="accepted"?"#f0faf5":status==="declined"?"#fff5f6":"#fafafa",border:"1px solid "+(status==="accepted"?"#cfecdf":status==="declined"?"#fcd4da":"transparent"),borderRadius:9}}>
+            <div style={{width:30,height:30,borderRadius:99,background:["#7a5af8","#d97757","#10b981","#3b82f6","#f59e0b"][i%5],color:"white",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:600,flexShrink:0}}>{m.slice(0,2).toUpperCase()}</div>
+            <div style={{flex:1,minWidth:0}}><div style={{fontSize:13,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{m}</div><div style={{fontSize:11,color:"var(--text-soft)"}}>{status==="pending"&&"Invitation sent · awaiting response"}{status==="accepted"&&"✓ Accepted invitation"}{status==="declined"&&"✗ Declined invitation"}</div></div>
+            {status==="pending"&&<div style={{display:"flex",alignItems:"center",gap:6}}><span style={{display:"inline-block",width:8,height:8,borderRadius:99,background:"#f59e0b",animation:"pulseDot 1.1s infinite"}}/><span style={{fontSize:11.5,color:"#a16207",fontWeight:500}}>Pending</span><button onClick={()=>remove(m)} style={{color:"var(--text-muted)",padding:4,marginLeft:2}}><XIcon size={14}/></button></div>}
+            {status!=="pending"&&<button onClick={()=>remove(m)} style={{color:"var(--text-muted)",padding:4}}><XIcon size={14}/></button>}
+          </div>)})}
+        {data.members.length===0&&<div style={{padding:14,textAlign:"center",background:"#fafafa",borderRadius:9,fontSize:12.5,color:"var(--text-soft)"}}>No invites yet — invite at least one member</div>}
+      </div>
+    </>}
+  </div>);
+}
+
+function Step2Consent({data,update,isCouple}){
+  return(<div style={{animation:"slideInLeft 160ms ease"}}>
+    <SectionTitle>Mutual Consent Policy</SectionTitle>
+    <div style={{fontSize:12.5,color:"var(--text-muted)",marginBottom:14}}>Define what fraction of members must consent for vault access.</div>
+    {isCouple?<div style={{padding:18,background:"#fafafa",borderRadius:11,display:"flex",alignItems:"center",gap:14}}>
+      <div style={{width:48,height:48,borderRadius:12,background:"#0a0a0a",color:"white",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><PercentIcon size={20}/></div>
+      <div><div style={{fontSize:15,fontWeight:700}}>100% consent required</div><div style={{fontSize:12.5,color:"var(--text-muted)",marginTop:2}}>Couple vaults use fixed unanimous consent. Both members must approve every access session.</div></div>
+    </div>:
+    <div style={{display:"flex",flexDirection:"column",gap:16}}>
+      <div style={{background:"#fafafa",borderRadius:11,padding:18}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}><span style={{fontSize:13,fontWeight:600}}>Minimum consent</span><span style={{fontSize:20,fontWeight:700,letterSpacing:"-0.01em"}}>{data.minConsent}%</span></div>
+        <input type="range" min="50" max="90" step="5" value={data.minConsent} onChange={e=>{const v=parseInt(e.target.value);update("minConsent",v);if(data.maxConsent<=v)update("maxConsent",Math.min(100,v+5))}} style={{width:"100%",accentColor:"#0a0a0a"}}/>
+        <div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:"var(--text-soft)"}}><span>50%</span><span>90%</span></div>
+        <div style={{fontSize:11.5,color:"var(--text-muted)",marginTop:6}}>Floor for any access decision. Requests below this are auto-denied.</div>
+      </div>
+      <div style={{background:"#fafafa",borderRadius:11,padding:18}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}><span style={{fontSize:13,fontWeight:600}}>Maximum consent</span><span style={{fontSize:20,fontWeight:700,letterSpacing:"-0.01em"}}>{data.maxConsent}%</span></div>
+        <input type="range" min={data.minConsent+5} max="100" step="5" value={data.maxConsent} onChange={e=>update("maxConsent",parseInt(e.target.value))} style={{width:"100%",accentColor:"#0a0a0a"}}/>
+        <div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:"var(--text-soft)"}}><span>{data.minConsent+5}%</span><span>100%</span></div>
+        <div style={{fontSize:11.5,color:"var(--text-muted)",marginTop:6}}>Ceiling for sensitive operations (delete, export). Must be greater than minimum.</div>
+      </div>
+    </div>}
+  </div>);
+}
+
+function Step3Recovery({data,update}){
+  return(<div style={{animation:"slideInLeft 160ms ease"}}>
+    <SectionTitle>Account Recovery Policy</SectionTitle>
+    <div style={{fontSize:12.5,color:"var(--text-muted)",marginBottom:14}}>What happens if a member loses their device or access keys?</div>
+    <div style={{display:"flex",flexDirection:"column",gap:10}}>
+      <SelectCard selected={data.recovery==="timelock"} onClick={()=>update("recovery","timelock")}>
+        <div style={{display:"flex",alignItems:"flex-start",gap:12}}><IconTile tone="neutral"><ClockIcon size={16}/></IconTile>
+          <div style={{flex:1}}><div style={{fontSize:13.5,fontWeight:600}}>Time-Locked Recovery</div><div style={{fontSize:12.5,color:"var(--text-muted)",marginTop:2}}>Recovery key released after a cooling-off delay. Other members are notified and can cancel.</div>
+            {data.recovery==="timelock"&&<div style={{marginTop:10,display:"flex",gap:6}}>{[7,14,30,60].map(d=><button key={d} onClick={e=>{e.stopPropagation();update("recoveryDays",d)}} style={{padding:"6px 12px",borderRadius:7,fontSize:12,fontWeight:500,background:data.recoveryDays===d?"#0a0a0a":"white",color:data.recoveryDays===d?"white":"#0a0a0a",border:"1px solid "+(data.recoveryDays===d?"#0a0a0a":"var(--border-strong)")}}>{d} days</button>)}</div>}
+          </div></div>
+      </SelectCard>
+      <SelectCard selected={data.recovery==="none"} onClick={()=>update("recovery","none")}>
+        <div style={{display:"flex",alignItems:"flex-start",gap:12}}><IconTile tone="danger"><LockIcon size={16}/></IconTile>
+          <div style={{flex:1}}><div style={{fontSize:13.5,fontWeight:600}}>No Recovery</div><div style={{fontSize:12.5,color:"var(--text-muted)",marginTop:2}}>Zero-knowledge. Lost keys mean permanently lost access. Highest security posture.</div></div></div>
+      </SelectCard>
+    </div>
+  </div>);
+}
+
+function Step4PostDeath({data,update}){
+  const opts=[{id:"survivor",title:"Survivor Ownership",sub:"Remaining members inherit full access and ownership.",icon:<UsersIcon size={16}/>,tone:"success"},{id:"autodelete",title:"Auto-Delete",sub:"Contents permanently wiped upon confirmed member death.",icon:<XIcon size={16}/>,tone:"danger"},{id:"permalock",title:"Permanent Lock",sub:"Vault sealed forever. Files preserved but inaccessible.",icon:<LockIcon size={16}/>,tone:"neutral"}];
+  return(<div style={{animation:"slideInLeft 160ms ease"}}>
+    <SectionTitle>Post-Death Policy</SectionTitle>
+    <div style={{fontSize:12.5,color:"var(--text-muted)",marginBottom:14}}>Define what happens to vault contents if a member dies. All members must agree.</div>
+    <div style={{display:"flex",flexDirection:"column",gap:10}}>{opts.map(o=>
+      <SelectCard key={o.id} selected={data.postDeath===o.id} onClick={()=>update("postDeath",o.id)}>
+        <div style={{display:"flex",alignItems:"flex-start",gap:12}}><IconTile tone={o.tone}>{o.icon}</IconTile><div style={{flex:1}}><div style={{fontSize:13.5,fontWeight:600}}>{o.title}</div><div style={{fontSize:12.5,color:"var(--text-muted)",marginTop:2}}>{o.sub}</div></div></div>
+      </SelectCard>)}</div>
+  </div>);
+}
+
+function Step5Exit({data,update}){
+  const opts=[{id:"transfer",title:"Ownership Transfer",sub:"Departing member's share transfers to remaining members.",icon:<ArrowRightIcon size={16}/>,tone:"success"},{id:"lock",title:"Permanent Lock",sub:"Vault locks for all members. Policy can be re-proposed later.",icon:<LockIcon size={16}/>,tone:"neutral"},{id:"delete",title:"Auto-Delete",sub:"All contents wiped when a member exits. Unrecoverable.",icon:<XIcon size={16}/>,tone:"danger"}];
+  return(<div style={{animation:"slideInLeft 160ms ease"}}>
+    <SectionTitle>Account Exit Protocol</SectionTitle>
+    <div style={{fontSize:12.5,color:"var(--text-muted)",marginBottom:14}}>What happens when a member chooses to leave the vault?</div>
+    <div style={{display:"flex",flexDirection:"column",gap:10}}>{opts.map(o=>
+      <SelectCard key={o.id} selected={data.accountExit===o.id} onClick={()=>update("accountExit",o.id)}>
+        <div style={{display:"flex",alignItems:"flex-start",gap:12}}><IconTile tone={o.tone}>{o.icon}</IconTile><div style={{flex:1}}><div style={{fontSize:13.5,fontWeight:600}}>{o.title}</div><div style={{fontSize:12.5,color:"var(--text-muted)",marginTop:2}}>{o.sub}</div></div></div>
+      </SelectCard>)}</div>
+  </div>);
+}
+
+function MemberAgreeRow({name,email,color,status,isSelf}){
+  const bg=status==="agreed"?"#f0faf5":status==="disagreed"?"#fff5f6":"#fafafa";
+  const border=status==="agreed"?"#cfecdf":status==="disagreed"?"#fcd4da":"transparent";
+  return(<div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:bg,border:"1px solid "+border,borderRadius:9}}>
+    <div style={{width:30,height:30,borderRadius:99,background:color,color:"white",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:600,flexShrink:0}}>{name.slice(0,2).toUpperCase()}</div>
+    <div style={{flex:1,minWidth:0}}><div style={{fontSize:13,fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{name}</div><div style={{fontSize:11,color:"var(--text-soft)"}}>{email}</div></div>
+    {status==="pending"&&<div style={{display:"flex",alignItems:"center",gap:6}}><span style={{width:8,height:8,borderRadius:99,background:"#f59e0b",animation:"pulseDot 1.1s infinite"}}/><span style={{fontSize:11.5,color:"#a16207",fontWeight:600}}>Pending</span></div>}
+    {status==="agreed"&&<span style={{fontSize:11.5,color:"#0a7a56",fontWeight:600}}>{isSelf?"✓ Agree":"Agree"}</span>}
+    {status==="disagreed"&&<span style={{fontSize:11.5,color:"#ef4056",fontWeight:600}}>Disagree</span>}
+  </div>);
+}
+
+function Step6Proposal({data,update,acceptedInvitees,allAgreed,anyDisagreed}){
+  const policyLabel={recovery:{timelock:`Time-Locked (${data.recoveryDays}d)`,none:"No Recovery"}[data.recovery],postDeath:{survivor:"Survivor Ownership",autodelete:"Auto-Delete",permalock:"Permanent Lock"}[data.postDeath],accountExit:{transfer:"Ownership Transfer",lock:"Permanent Lock",delete:"Auto-Delete"}[data.accountExit]};
+  useEffect(()=>{const timers=[];acceptedInvitees.forEach((m,i)=>{if((data.proposalStatus[m]||"pending")!=="pending")return;const delay=2400+i*900+Math.random()*1600;const will=Math.random()>0.15;timers.push(setTimeout(()=>{update("proposalStatus",p=>(p[m]||"pending")==="pending"?{...p,[m]:will?"agreed":"disagreed"}:p)},delay))});return()=>timers.forEach(clearTimeout)},[]);
+  return(<div style={{animation:"slideInLeft 160ms ease"}}>
+    <div style={{fontSize:12.5,color:"var(--text-muted)",marginBottom:14}}>Each member reviews the policy configuration. All must agree to proceed.</div>
+    <div style={{background:"#fafafa",border:"1px solid var(--border)",borderRadius:11,padding:14,marginBottom:16}}>
+      <div style={{fontSize:12,fontWeight:600,color:"var(--text-muted)",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>Policy summary</div>
+      <div style={{display:"flex",flexDirection:"column",gap:6}}>
+        <ReviewRow label="Vault" value={data.name}/><ReviewRow label="Type" value={data.vaultType==="couple"?"Couple":"Family"}/><ReviewRow label="Consent" value={data.vaultType==="couple"?"100%":`${data.minConsent}% – ${data.maxConsent}%`}/><ReviewRow label="Recovery" value={policyLabel.recovery}/><ReviewRow label="Post-death" value={policyLabel.postDeath}/><ReviewRow label="Exit protocol" value={policyLabel.accountExit}/>
+      </div>
+    </div>
+    <div style={{fontSize:12,fontWeight:600,color:"var(--text-muted)",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>Member responses</div>
+    <div style={{display:"flex",flexDirection:"column",gap:8}}>
+      <MemberAgreeRow name="You (Proposer)" email="john.doe@example.com" color="#0a0a0a" status="agreed" isSelf/>
+      {acceptedInvitees.map((m,i)=><MemberAgreeRow key={m} name={m.split("@")[0]} email={m} color={["#7a5af8","#d97757","#10b981","#3b82f6","#f59e0b"][i%5]} status={data.proposalStatus[m]||"pending"}/>)}
+    </div>
+    {anyDisagreed&&<div style={{marginTop:14,padding:12,background:"#fff4e6",border:"1px solid #ffd89a",borderRadius:9,fontSize:12.5,color:"#7a4a00"}}>A member disagreed. Revise the policy in earlier steps or negotiate before proceeding.</div>}
+    {allAgreed&&acceptedInvitees.length>0&&<div style={{marginTop:14,padding:12,background:"#e6faf1",border:"1px solid #b3ecd3",borderRadius:9,fontSize:12.5,color:"#0a6b4b",display:"flex",alignItems:"center",gap:8}}><CheckIcon size={14}/> All members agreed. Proceed to final signature.</div>}
+  </div>);
+}
+
+function SignatureRow({name,color,checked,onToggle}){
+  return(<label onClick={onToggle} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",background:checked?"#f0faf5":"white",border:"1px solid "+(checked?"#b3ecd3":"var(--border)"),borderRadius:10,cursor:"pointer",transition:"all 140ms"}}>
+    <div style={{width:32,height:32,borderRadius:99,background:color,color:"white",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:600,flexShrink:0}}>{name.slice(0,2).toUpperCase()}</div>
+    <div style={{flex:1,minWidth:0}}><div style={{fontSize:13,fontWeight:500}}>{name}</div><div style={{fontSize:11,color:"var(--text-soft)"}}>{checked?"✓ Signed agreement":"Awaiting signature"}</div></div>
+    <div style={{width:22,height:22,borderRadius:6,border:"1.5px solid "+(checked?"#10b981":"#d5d5d5"),background:checked?"#10b981":"white",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{checked&&<CheckIcon size={13} stroke={2.8} style={{color:"white"}}/>}</div>
+  </label>);
+}
+
+function Step7Final({data,update,acceptedInvitees}){
+  const toggle=k=>update("finalAgreed",{...data.finalAgreed,[k]:!data.finalAgreed[k]});
+  return(<div style={{animation:"slideInLeft 160ms ease"}}>
+    <SectionTitle>Final agreement & signature</SectionTitle>
+    <div style={{fontSize:12.5,color:"var(--text-muted)",marginBottom:14}}>Each member reviews the final version and confirms via signed checkbox. Any disagreement blocks activation.</div>
+    <div style={{background:"#fafafa",border:"1px solid var(--border)",borderRadius:11,padding:14,marginBottom:16}}>
+      <div style={{fontSize:13,fontWeight:600,marginBottom:6}}>{data.name}</div>
+      <div style={{fontSize:12,color:"var(--text-muted)",lineHeight:1.6}}>By confirming, you agree to the mutual consent policy, recovery rules, post-death handling, and exit protocol negotiated in the previous steps. This agreement is cryptographically signed and stored as a witness.</div>
+    </div>
+    <div style={{display:"flex",flexDirection:"column",gap:8}}>
+      <SignatureRow name="You (Proposer)" color="#0a0a0a" checked={!!data.finalAgreed["self"]} onToggle={()=>toggle("self")}/>
+      {acceptedInvitees.map((m,i)=><SignatureRow key={m} name={m.split("@")[0]} color={["#7a5af8","#d97757","#10b981","#3b82f6","#f59e0b"][i%5]} checked={!!data.finalAgreed[m]} onToggle={()=>toggle(m)}/>)}
+    </div>
+  </div>);
+}
+
+function Step8Activation({data}){
+  const[phase,setPhase]=useState(0);
+  useEffect(()=>{const t1=setTimeout(()=>setPhase(1),700);const t2=setTimeout(()=>setPhase(2),1600);const t3=setTimeout(()=>setPhase(3),2500);return()=>{clearTimeout(t1);clearTimeout(t2);clearTimeout(t3)}},[]);
+  const rows=[{label:"Generating encryption keys",icon:<KeyIcon size={14}/>},{label:"Distributing key shares to members",icon:<UsersIcon size={14}/>},{label:"Removing activation blur",icon:<UnlockIcon size={14}/>}];
+  return(<div style={{animation:"slideInLeft 160ms ease",textAlign:"center",padding:"12px 0"}}>
+    <div style={{width:72,height:72,borderRadius:99,background:phase>=3?"#e6faf1":"#0a0a0a",color:phase>=3?"#10b981":"white",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",transition:"all 400ms"}}>{phase>=3?<CheckIcon size={34} stroke={2.4}/>:<ShieldIcon size={32}/>}</div>
+    <div style={{fontSize:19,fontWeight:700,letterSpacing:"-0.01em"}}>{phase>=3?"Vault activated":"Activating vault…"}</div>
+    <div style={{fontSize:13,color:"var(--text-muted)",marginTop:6,maxWidth:340,margin:"6px auto 0"}}>{phase>=3?`"${data.name}" is now fully active and accessible per your consent policy.`:"Generating keys and distributing shares. Do not close this window."}</div>
+    <div style={{margin:"22px auto 0",maxWidth:340,background:"#fafafa",borderRadius:11,padding:14,display:"flex",flexDirection:"column",gap:10,textAlign:"left"}}>
+      {rows.map((r,i)=>{const done=phase>i;const active=phase===i;return(
+        <div key={i} style={{display:"flex",alignItems:"center",gap:10,fontSize:12.5}}>
+          <div style={{width:22,height:22,borderRadius:99,background:done?"#10b981":"white",border:done?"none":"1.5px solid var(--border-strong)",color:done?"white":"var(--text-muted)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,animation:active?"pulseDot 1.2s infinite":"none"}}>{done?<CheckIcon size={12} stroke={2.8}/>:r.icon}</div>
+          <span style={{color:done?"#0a0a0a":"var(--text-muted)",fontWeight:done?500:400}}>{r.label}</span>
+        </div>)})}
+    </div>
+  </div>);
+}
+
+function CreateVaultWizard({onClose,onCreate}){
+  const[step,setStep]=useState(1);
+  const[data,setData]=useState({name:"",vaultType:"",members:[],newMemberEmail:"",inviteStatus:{},minConsent:100,maxConsent:100,recovery:"",recoveryDays:30,postDeath:"",accountExit:"",proposalStatus:{},finalAgreed:{},activated:false});
+  const update=(k,v)=>setData(d=>({...d,[k]:typeof v==="function"?v(d[k]):v}));
+  const isCouple=data.vaultType==="couple";
+  const maxMembers=isCouple?1:5;
+  const acceptedInvitees=data.members.filter(m=>data.inviteStatus[m]==="accepted");
+  const allAgreed=acceptedInvitees.every(m=>data.proposalStatus[m]==="agreed");
+  const anyDisagreed=acceptedInvitees.some(m=>data.proposalStatus[m]==="disagreed");
+  const allFinalAgreed=acceptedInvitees.every(m=>data.finalAgreed[m])&&data.finalAgreed["self"];
+  const canNext=()=>{if(step===1)return data.name.trim()&&data.vaultType&&acceptedInvitees.length>=1;if(step===2){if(isCouple)return true;return data.minConsent>=50&&data.minConsent<=90&&data.maxConsent>data.minConsent&&data.maxConsent<=100}if(step===3)return!!data.recovery;if(step===4)return!!data.postDeath;if(step===5)return!!data.accountExit;if(step===6)return allAgreed;if(step===7)return allFinalAgreed;return true};
+  const next=()=>{if(canNext()&&step<8)setStep(step+1)};
+  const back=()=>{if(step>1)setStep(step-1);else onClose()};
+  const finalize=()=>{onCreate({name:data.name,description:{couple:"Shared couple vault",family:"Shared family vault"}[data.vaultType]||"Shared vault",consent:isCouple?100:data.minConsent,members:[{id:"jd",name:"John Doe",email:"john.doe@example.com",initials:"JD",color:"#0a0a0a"},...acceptedInvitees.map((m,i)=>({id:`m${i}`,name:m.split("@")[0].replace(/\./g," ").replace(/\b\w/g,c=>c.toUpperCase()),email:m,initials:m.slice(0,2).toUpperCase(),color:["#7a5af8","#d97757","#10b981","#3b82f6","#f59e0b"][i%5]}))]})};
+  const stepTitles={1:"Vault Setup",2:"Consent Policy",3:"Recovery Policy",4:"Post-Death Policy",5:"Account Exit Protocol",6:"Proposal Review",7:"Final Agreement",8:"Vault Activation"};
+  return(<ModalShell onClose={onClose} width={560}><div style={{padding:"24px 26px 18px"}}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
+      <div><div style={{fontSize:18,fontWeight:700,letterSpacing:"-0.01em"}}>Create New Drive</div><div style={{fontSize:12.5,color:"var(--text-muted)",marginTop:3}}>Step {step} of 8 · {step===1?"Drive Setup":stepTitles[step]}</div></div>
+      <button onClick={onClose} style={{color:"var(--text-muted)"}}><XIcon size={16}/></button>
+    </div>
+    <StepIndicator step={step} total={8}/>
+    <div style={{marginTop:20,minHeight:320}}>
+      {step===1&&<Step1Setup data={data} update={update} maxMembers={maxMembers}/>}
+      {step===2&&<Step2Consent data={data} update={update} isCouple={isCouple}/>}
+      {step===3&&<Step3Recovery data={data} update={update}/>}
+      {step===4&&<Step4PostDeath data={data} update={update}/>}
+      {step===5&&<Step5Exit data={data} update={update}/>}
+      {step===6&&<Step6Proposal data={data} update={update} acceptedInvitees={acceptedInvitees} allAgreed={allAgreed} anyDisagreed={anyDisagreed}/>}
+      {step===7&&<Step7Final data={data} update={update} acceptedInvitees={acceptedInvitees}/>}
+      {step===8&&<Step8Activation data={data}/>}
+    </div>
+    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:20,paddingTop:16,borderTop:"1px solid var(--border)"}}>
+      <SecondaryButton onClick={back}><ArrowLeftIcon size={13}/> Back</SecondaryButton>
+      <div style={{fontSize:12,color:"var(--text-muted)"}}>Step {step} of 8</div>
+      {step<8?<button onClick={next} disabled={!canNext()} style={{display:"flex",alignItems:"center",gap:6,padding:"9px 16px",borderRadius:8,background:canNext()?"#0a0a0a":"#c5c5c5",color:"white",fontSize:13,fontWeight:500,cursor:canNext()?"pointer":"not-allowed"}}>Next <ArrowRightIcon size={13}/></button>:
+      <button onClick={finalize} style={{display:"flex",alignItems:"center",gap:6,padding:"9px 18px",borderRadius:8,background:"#10b981",color:"white",fontSize:13,fontWeight:500}}><CheckIcon size={14}/> Enter Vault</button>}
+    </div>
+  </div></ModalShell>);
+}
+
+/* ============================================================ */
+/* SECTION 9: DRIVE SETTINGS MODAL + SUB-SECTIONS                */
+/* ============================================================ */
+function DSTitle({children}){return<div style={{fontSize:15,fontWeight:700,marginBottom:12}}>{children}</div>}
+function DSSub({children}){return<div style={{fontSize:12.5,color:"var(--text-muted)",marginBottom:16}}>{children}</div>}
+
+function MembersSection({vault}){
+  const[email,setEmail]=useState("");const[invites,setInvites]=useState([]);
+  const add=()=>{const e=email.trim().toLowerCase();if(!e.includes("@")||invites.includes(e))return;setInvites([...invites,e]);setEmail("")};
+  return(<div><DSTitle>Add new members</DSTitle><DSSub>New members must be approved by existing members before gaining access.</DSSub>
+    <div style={{fontSize:12,fontWeight:600,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:8}}>Current members</div>
+    <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:18}}>
+      {vault.members.map(m=><div key={m.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 10px",background:"#fafafa",borderRadius:8}}>
+        <div style={{width:26,height:26,borderRadius:99,background:m.color,color:"white",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10.5,fontWeight:600}}>{m.initials}</div>
+        <div style={{flex:1,fontSize:12.5}}>{m.name}</div><span style={{fontSize:10.5,color:"var(--text-muted)"}}>{m.email}</span>
+      </div>)}
+    </div>
+    <div style={{fontSize:12,fontWeight:600,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:8}}>Invite new</div>
+    <div style={{display:"flex",gap:8}}><input value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@example.com" style={{...inputStyle,flex:1}} onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();add()}}}/><PrimaryButton onClick={add}>Invite</PrimaryButton></div>
+    {invites.length>0&&<div style={{marginTop:12,display:"flex",flexDirection:"column",gap:6}}>{invites.map(e=><div key={e} style={{fontSize:12.5,padding:"8px 10px",background:"#fffbe8",border:"1px solid #ffe7a1",borderRadius:8,color:"#7a5a00"}}>{e} · Awaiting consent from existing members</div>)}</div>}
+  </div>);
+}
+
+function PolicySection({vault,isCouple}){
+  const[open,setOpen]=useState(null);
+  const rows=[{id:"consent",label:"Mutual Consent Policy",val:isCouple?"100% (Couple, fixed)":`${vault.consent}% minimum`},{id:"recovery",label:"Drive Recovery Policy",val:"Time-Locked (30d)"},{id:"postdeath",label:"Post-Death Policy",val:"Survivor Ownership"},{id:"exit",label:"Account Exit Protocol",val:"Ownership Transfer"}];
+  return(<div><DSTitle>Policy & Protocols</DSTitle><DSSub>Any change requires unanimous agreement from all drive members.</DSSub>
+    <div style={{display:"flex",flexDirection:"column",gap:8}}>{rows.map(r=><div key={r.id} style={{border:"1px solid var(--border)",borderRadius:10,overflow:"hidden"}}>
+      <button onClick={()=>setOpen(open===r.id?null:r.id)} style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 14px",background:"white",textAlign:"left"}}>
+        <div><div style={{fontSize:13.5,fontWeight:600}}>{r.label}</div><div style={{fontSize:12,color:"var(--text-muted)",marginTop:2}}>Current: {r.val}</div></div>
+        <ChevronRightIcon size={14} style={{transform:open===r.id?"rotate(90deg)":"none",transition:"transform 160ms"}}/>
+      </button>
+      {open===r.id&&<div style={{padding:"12px 14px",background:"#fafafa",borderTop:"1px solid var(--border)",fontSize:12.5,color:"var(--text-muted)"}}>
+        Proposing a change opens a review flow where every member must Agree. If anyone Disagrees, the current policy stays in effect.
+        <button style={{display:"block",marginTop:10,padding:"7px 12px",borderRadius:7,background:"#0a0a0a",color:"white",fontSize:12,fontWeight:500}}>Propose Change</button>
+      </div>}
+    </div>)}</div>
+  </div>);
+}
+
+function SecuritySection({security,toggle}){
+  const items=[{id:"faceId",label:"Face ID / Touch ID",sub:"Use your device's facial or fingerprint unlock"},{id:"biometric",label:"Biometric authentication",sub:"Required before opening the drive"},{id:"pin",label:"PIN / Password login",sub:"Fallback when biometrics are unavailable"},{id:"screenshotBlock",label:"Screenshot blocking",sub:"Prevents OS-level screenshots inside the drive"},{id:"recordingBlock",label:"Screen recording protection",sub:"Blocks drive content when recording is detected"},{id:"captureAlerts",label:"Real-time capture alerts",sub:"Notify all members instantly on capture attempts"},{id:"faceMonitor",label:"Continuous face monitoring",sub:"Keep verifying the authorized face during sessions"},{id:"autoLockMismatch",label:"Auto-lock on face mismatch",sub:"Immediately lock drive if another face is detected"}];
+  return(<div><DSTitle>Security</DSTitle><DSSub>Configure how this drive protects content while it's open.</DSSub>
+    <div style={{display:"flex",flexDirection:"column",gap:8}}>{items.map(it=><div key={it.id} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",borderRadius:10,border:"1px solid var(--border)",background:"white"}}>
+      <div style={{flex:1,minWidth:0}}><div style={{fontSize:13.5,fontWeight:600}}>{it.label}</div><div style={{fontSize:12,color:"var(--text-muted)",marginTop:2}}>{it.sub}</div></div>
+      <button onClick={()=>toggle(it.id)} style={{position:"relative",width:40,height:22,borderRadius:99,background:security[it.id]?"#10b981":"#d0d0d0",transition:"background 160ms",flexShrink:0}}>
+        <span style={{position:"absolute",top:2,left:security[it.id]?20:2,width:18,height:18,borderRadius:99,background:"white",transition:"left 160ms",boxShadow:"0 1px 2px rgba(0,0,0,0.2)"}}/>
+      </button>
+    </div>)}</div>
+  </div>);
+}
+
+function StorageSection({vault}){
+  const used=47;const total=200;const pct=(used/total)*100;
+  const packs=[{size:"5 GB",price:"$1/mo"},{size:"20 GB",price:"$2/mo"},{size:"50 GB",price:"$3/mo"},{size:"100 GB",price:"$5/mo"},{size:"250 GB",price:"$9/mo"},{size:"1 TB",price:"$19/mo"},{size:"2 TB",price:"$29/mo"}];
+  return(<div><DSTitle>Drive Storage</DSTitle><DSSub>Free tier includes 200 MB. Buy more to expand this drive.</DSSub>
+    <div style={{background:"#fafafa",border:"1px solid var(--border)",borderRadius:11,padding:18,marginBottom:18}}>
+      <div style={{display:"flex",justifyContent:"space-between",marginBottom:8,fontSize:13}}><span style={{fontWeight:600}}>{used} MB used</span><span style={{color:"var(--text-muted)"}}>of {total} MB (Free)</span></div>
+      <div style={{height:8,borderRadius:99,background:"#e5e5e5",overflow:"hidden"}}><div style={{height:"100%",width:`${pct}%`,background:"#10b981",transition:"width 300ms"}}/></div>
+    </div>
+    <div style={{fontSize:12,fontWeight:600,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:10}}>Add storage</div>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:10}}>{packs.map(p=>
+      <button key={p.size} style={{padding:"14px 12px",borderRadius:10,border:"1px solid var(--border)",background:"white",textAlign:"left",transition:"all 140ms"}} onMouseEnter={e=>{e.currentTarget.style.borderColor="#0a0a0a";e.currentTarget.style.background="#fafafa"}} onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.background="white"}}>
+        <div style={{fontSize:15,fontWeight:700,letterSpacing:"-0.01em"}}>{p.size}</div><div style={{fontSize:11.5,color:"var(--text-muted)",marginTop:2}}>{p.price}</div>
+      </button>)}</div>
+  </div>);
+}
+
+function UpgradeSection({isCouple}){
+  const plans=isCouple?[{id:"free",name:"Free",price:"$0",features:["1 Couple Drive","200 MB storage","Basic security"],current:true},{id:"plus",name:"Couple Plus",price:"$3/mo",features:["50 GB storage","Advanced access controls","Longer sessions","Detailed access logs"]},{id:"pro",name:"Couple Pro",price:"$5/mo",features:["200 GB storage","Panic Mode / Emergency Lock","Geo-lock access","Device-restricted access","Encrypted backup"],best:true}]:
+  [{id:"free",name:"Free",price:"$0",features:["1 Family Drive (2 users)","200 MB storage","Basic security"],current:true},{id:"plus",name:"Family Plus",price:"$6/mo",features:["Up to 6 members","100 GB shared storage","Per-member access logs","Priority requests"]},{id:"pro",name:"Family Pro",price:"$10/mo",features:["Up to 6 members","500 GB shared storage","Panic Mode","Geo + device-locked access","Role-based permissions","Encrypted backup vault"],best:true}];
+  return(<div><DSTitle>Upgrade Drive</DSTitle><DSSub>Upgrades apply to this drive and are shared between all members. Billed per drive, not per user.</DSSub>
+    <div style={{display:"flex",flexDirection:"column",gap:12}}>{plans.map(p=><div key={p.id} style={{padding:16,borderRadius:12,border:"1.5px solid "+(p.best?"#0a0a0a":"var(--border)"),background:p.current?"#fafafa":"white",position:"relative"}}>
+      {p.best&&<span style={{position:"absolute",top:-10,right:14,background:"#0a0a0a",color:"white",fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:99,letterSpacing:"0.03em"}}>RECOMMENDED</span>}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:8}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:15,fontWeight:700}}>{p.name}</span>{p.current&&<span style={{fontSize:10,fontWeight:600,padding:"2px 8px",borderRadius:99,background:"#e6e6e6",color:"var(--text-muted)"}}>CURRENT</span>}</div>
+        <span style={{fontSize:18,fontWeight:700,letterSpacing:"-0.01em"}}>{p.price}</span>
+      </div>
+      <ul style={{margin:0,padding:0,listStyle:"none",display:"flex",flexDirection:"column",gap:6}}>
+        {p.features.map((f,i)=><li key={i} style={{fontSize:12.5,display:"flex",gap:8,alignItems:"flex-start",color:"var(--text)"}}><span style={{color:"#10b981",marginTop:1,flexShrink:0}}><CheckIcon size={12} stroke={2.6}/></span>{f}</li>)}
+      </ul>
+      {!p.current&&<button style={{marginTop:12,width:"100%",padding:"10px 0",borderRadius:9,background:p.best?"#0a0a0a":"white",color:p.best?"white":"#0a0a0a",border:p.best?"none":"1px solid var(--border-strong)",fontSize:13,fontWeight:600}}>Upgrade to {p.name}</button>}
+    </div>)}</div>
+  </div>);
+}
+
+function DriveSettingsModal({vault,onClose,onRename}){
+  const[section,setSection]=useState("members");
+  const[security,setSecurity]=useState({faceId:true,biometric:true,pin:true,screenshotBlock:true,recordingBlock:true,captureAlerts:true,faceMonitor:false,autoLockMismatch:false});
+  const toggle=k=>setSecurity(s=>({...s,[k]:!s[k]}));
+  const isCouple=(vault.members?.length||2)<=2;
+  const nav=[{id:"members",label:"Add New Members",icon:<UsersIcon size={14}/>},{id:"policy",label:"Policy & Protocols",icon:<ShieldIcon size={14}/>},{id:"security",label:"Security",icon:<LockIcon size={14}/>},{id:"storage",label:"Drive Storage",icon:<DatabaseIcon size={14}/>},{id:"upgrade",label:"Upgrade Drive",icon:<SparkleIcon size={14}/>}];
+  return(<ModalShell onClose={onClose} width={780}><div style={{display:"flex",minHeight:540,maxHeight:"85vh"}}>
+    <div style={{width:220,background:"#fafafa",borderRight:"1px solid var(--border)",padding:"22px 12px",display:"flex",flexDirection:"column",gap:2,flexShrink:0}}>
+      <div style={{padding:"0 12px 14px",fontSize:11,fontWeight:600,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.06em"}}>Drive Settings</div>
+      {nav.map(n=><button key={n.id} onClick={()=>setSection(n.id)} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:8,textAlign:"left",background:section===n.id?"white":"transparent",border:section===n.id?"1px solid var(--border)":"1px solid transparent",boxShadow:section===n.id?"0 1px 2px rgba(0,0,0,0.04)":"none",fontSize:13,fontWeight:section===n.id?600:500,color:"#0a0a0a"}}><span style={{color:"var(--text-muted)"}}>{n.icon}</span><span>{n.label}</span></button>)}
+    </div>
+    <div style={{flex:1,padding:"22px 26px",overflow:"auto",minWidth:0}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:18}}>
+        <div><div style={{fontSize:17,fontWeight:700,letterSpacing:"-0.01em"}}>{vault.name}</div><div style={{fontSize:12,color:"var(--text-muted)",marginTop:2}}>{isCouple?"Couple Drive":"Family Drive"} · Free tier</div></div>
+        <button onClick={onClose} style={{color:"var(--text-muted)"}}><XIcon size={16}/></button>
+      </div>
+      {section==="members"&&<MembersSection vault={vault}/>}
+      {section==="policy"&&<PolicySection vault={vault} isCouple={isCouple}/>}
+      {section==="security"&&<SecuritySection security={security} toggle={toggle}/>}
+      {section==="storage"&&<StorageSection vault={vault}/>}
+      {section==="upgrade"&&<UpgradeSection isCouple={isCouple}/>}
+    </div>
+  </div></ModalShell>);
+}
+
+/* ============================================================ */
+/* SECTION 10: APP ROOT + MOUNT                                  */
+/* ============================================================ */
+function App(){
+  const[vaults,setVaults]=useState(INITIAL_VAULTS);
+  const[consentRequests,setConsentRequests]=useState(CONSENT_REQUESTS);
+  const[activity,setActivity]=useState(RECENT_ACTIVITY);
+  const[view,setView]=useState({name:"dashboard"});
+  const[openPanel,setOpenPanel]=useState(null);
+  const[createOpen,setCreateOpen]=useState(false);
+  const[toast,setToast]=useState(null);
+  const showToast=(msg,kind="default")=>{setToast({msg,kind,id:Date.now()});setTimeout(()=>setToast(null),2400)};
+  const handleConsentAction=(id,kind)=>{const req=consentRequests.find(r=>r.id===id);setConsentRequests(rs=>rs.filter(r=>r.id!==id));showToast(kind==="approve"?`Approved: ${req.vaultName}`:`Rejected: ${req.vaultName}`,kind==="approve"?"success":"danger")};
+  const handleRequestAccess=vaultId=>{setVaults(vs=>vs.map(v=>v.id===vaultId?{...v,requestState:"pending"}:v));const v=vaults.find(x=>x.id===vaultId);showToast(`Access requested for ${v.name}`)};
+  const handleOpenVault=vaultId=>{setView({name:"vault",id:vaultId});setOpenPanel(null)};
+  const handleCreateVault=newVault=>{setVaults(vs=>[{...newVault,id:`v${Date.now()}`,status:"locked",files:[],created:"just now",requestState:null},...vs]);setCreateOpen(false);showToast(`Vault "${newVault.name}" created`,"success")};
+  return(<div>
+    <TopBar notifications={consentRequests.length} openPanel={openPanel} setOpenPanel={setOpenPanel} consentRequests={consentRequests} activity={activity} onConsentAction={handleConsentAction} onOpenVault={handleOpenVault}/>
+    {view.name==="dashboard"&&<Dashboard vaults={vaults} onCreate={()=>setCreateOpen(true)} onOpen={handleOpenVault} onRequestAccess={handleRequestAccess}/>}
+    {view.name==="vault"&&<VaultDetail vault={vaults.find(v=>v.id===view.id)} onBack={()=>setView({name:"dashboard"})} onUpload={(vaultId,file)=>{setVaults(vs=>vs.map(v=>v.id===vaultId?{...v,files:[file,...v.files]}:v));showToast(`Uploaded ${file.name}`,"success")}} onRename={(vaultId,newName)=>{setVaults(vs=>vs.map(v=>v.id===vaultId?{...v,name:newName}:v));showToast(`Drive renamed to "${newName}"`,"success")}}/>}
+    {createOpen&&<CreateVaultWizard onClose={()=>setCreateOpen(false)} onCreate={handleCreateVault}/>}
+    <Toast toast={toast}/><HelpFab/>
+  </div>);
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>

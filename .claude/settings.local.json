@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(start \"F:/Claude Code/Nirvana/nirvana-app.html\")",
+      "Bash(npx serve *)",
+      "Bash(start \"http://localhost:3000\")",
+      "Bash(start http://localhost:3000)",
+      "Bash(python -m http.server 3000)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(netstat -ano)",
+      "Bash(findstr :3000)",
+      "Bash(findstr LISTENING)"
+    ]
+  }
+}
